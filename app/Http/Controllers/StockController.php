@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ProductSize;
+use App\Services\StockService;
+use Illuminate\Http\Request;
+
+class StockController extends Controller
+{
+    public function __construct(private StockService $stockService) {}
+
+    public function adjust(Request $request, ProductSize $size)
+    {
+        $request->validate([
+            'quantity' => ['required', 'integer', 'min:0'],
+            'notes'    => ['nullable', 'string'],
+        ]);
+
+        $this->stockService->adjust($size->id, $request->quantity, $request->notes ?? '');
+        $size->refresh();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'new_stock' => $size->stock_quantity,
+                'is_low'    => $size->isLowStock(),
+            ]);
+        }
+
+        return back()->with('success', 'Stock adjusted.');
+    }
+
+    public function purchase(Request $request, ProductSize $size)
+    {
+        $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+            'notes'    => ['nullable', 'string'],
+        ]);
+
+        $this->stockService->purchase($size->id, $request->quantity, $request->notes ?? '');
+        $size->refresh();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'new_stock' => $size->stock_quantity,
+                'is_low'    => $size->isLowStock(),
+            ]);
+        }
+
+        return back()->with('success', "Added {$request->quantity} units to stock.");
+    }
+}
