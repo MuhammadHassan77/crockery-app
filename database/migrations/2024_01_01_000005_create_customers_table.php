@@ -8,17 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('phone')->nullable()->index();
-            $table->string('email')->nullable();
-            $table->text('address')->nullable();
-            $table->string('city')->nullable();
-            $table->text('notes')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('customers')) {
+            Schema::create('customers', function (Blueprint $table) {
+                $table->id();
+                $table->string('name')->index();
+                $table->string('phone')->nullable()->index();
+                $table->string('email')->nullable()->index();
+                $table->text('address')->nullable();
+                $table->string('city')->nullable();
+                $table->text('notes')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->decimal('account_balance', 14, 2)->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

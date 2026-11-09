@@ -49,7 +49,7 @@
 </div>
 
 <div class="card">
-  <div class="card-body p-0">
+  <div class="card-body">
     <div class="table-responsive">
       <table id="invoicesTable" class="table table-hover mb-0 w-100">
         <thead class="table-light">
@@ -59,8 +59,11 @@
             <th>{{ __('Customers') }}</th>
             <th>{{ __('Type') }}</th>
             <th class="text-end">{{ __('Total') }}</th>
+            {{-- <th class="text-end">{{ __('Cash Refund') }}</th> --}}
             <th class="text-end">{{ __('Paid') }}</th>
             <th class="text-end">{{ __('Due') }}</th>
+            <th class="text-start">Invoice Created/<br> Updated Date</th>
+            <th>{{ __('Created By') }}</th>
             <th>{{ __('Status') }}</th>
             <th class="text-center">{{ __('Actions') }}</th>
           </tr>
@@ -114,8 +117,16 @@ $(function () {
       { data: 'customer_name',  name: 'customer_name', defaultContent: '<span class="text-muted">{{ __("Walk-in") }}</span>' },
       { data: 'type_badge',     name: 'customer_id',   searchable: false, orderable: false },
       { data: 'total_amount',   name: 'total_amount',  className: 'text-end' },
+      // { data: 'cash_refund_amount',   name: 'cash_refund_amount',  className: 'text-end' },
       { data: 'paid_amount',    name: 'paid_amount',   className: 'text-end text-success' },
       { data: 'remaining',      name: 'remaining',     className: 'text-end', searchable: false },
+      { data: 'updated_at',     name: 'updated_at', render: (val, i, row) => {
+        created_at =  row?.created_at;
+        updated_at =  val;
+        return updated_at != created_at ? `C: ${created_at} <br> U: ${updated_at}` : updated_at;
+      }, searchable : true, orderable: false
+	  },
+      { data: 'created_by',   name: 'created_by' },
       { data: 'status_badge',   name: 'status',        searchable: false },
       { data: 'actions',        name: 'actions',       orderable: false, searchable: false, className: 'text-center' }
     ],

@@ -58,7 +58,7 @@
 
 <div class="card">
   <div class="card-header"><h6 class="mb-0">{{ __('Inventory Levels') }}</h6></div>
-  <div class="card-body p-0">
+  <div class="card-body p-2">
     <div class="table-responsive">
       <table class="table table-hover mb-0" id="stockTable">
         <thead class="table-light">
@@ -116,8 +116,8 @@
 <script>
 $(function () {
   $('#stockTable').DataTable({
-    paging: false, searching: true, info: false,
-    dom: '<"d-flex justify-content-between mb-2"<"d-flex gap-2"B>f>t',
+    paging: true, searching: true, info: true,
+    dom: '<"d-flex justify-content-between mb-2"<"d-flex gap-2"Bl>f>tip',
     buttons: [
       { extend: 'excel', className: 'btn btn-sm btn-outline-success', text: '<i class="bi bi-file-earmark-excel me-1"></i>{{ __("Excel") }}' },
       { extend: 'csv',   className: 'btn btn-sm btn-outline-info',    text: '<i class="bi bi-filetype-csv me-1"></i>{{ __("CSV") }}' },

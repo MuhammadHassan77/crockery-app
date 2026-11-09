@@ -45,7 +45,7 @@
   <div class="auth-wrap">
     <div class="auth-card">
       <div class="auth-logo">
-        <img src="{{ asset('assets/niceadmin/img/logo.webp') }}" alt="{{ config('app.name') }}">
+        <img src="{{ asset('assets/niceadmin/img/logo.webp') }}" alt="{{ config('app.name') }}" style="transform: rotate(45deg)">
         <h4>{{ config('app.name') }}</h4>
         <p>@yield('auth-subtitle', 'Sign in to your account')</p>
       </div>

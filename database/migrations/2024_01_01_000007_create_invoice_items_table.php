@@ -8,17 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('invoice_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('invoice_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_size_id')->constrained();
-            $table->string('product_name');     // snapshot at sale time
-            $table->string('size_label');        // snapshot at sale time
-            $table->integer('quantity');
-            $table->decimal('unit_price', 10, 2); // snapshot at sale time
-            $table->decimal('total_price', 12, 2);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('invoice_items')) {
+            Schema::create('invoice_items', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('invoice_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('product_size_id')->constrained();
+                $table->string('product_name');     // snapshot at sale time
+                $table->string('size_label');        // snapshot at sale time
+                $table->string('product_name_ur')->nullable();     // snapshot at sale time
+                $table->string('size_label_ur')->nullable();        // snapshot at sale time
+                $table->integer('quantity');
+                $table->decimal('weight', 10, 2)->nullable();
+                $table->decimal('unit_price', 10, 2); // snapshot at sale time
+                $table->decimal('total_price', 12, 2);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

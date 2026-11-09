@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -11,7 +12,7 @@ class StockMovement extends Model
     protected $fillable = [
         'product_size_id', 'type', 'quantity_change',
         'stock_after', 'reference_id', 'reference_type',
-        'notes', 'created_by',
+        'notes', 'purchase_price', 'created_by',
     ];
 
     public function productSize(): BelongsTo

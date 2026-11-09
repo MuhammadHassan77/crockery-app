@@ -37,6 +37,7 @@
                 <th>سائز (اردو)</th>
                 <th>{{ __('SKU') }}</th>
                 <th class="text-center">{{ __('Stock') }}</th>
+                <th class="text-end">{{ app()->getLocale() === 'ur' ? 'Qeemat-e-Kared' : 'Purchase Price' }}</th>
                 <th class="text-end">{{ app()->getLocale() === 'ur' ? 'Mojooda Qeemat' : 'Current Price' }}</th>
                 <th class="text-center">{{ __('Status') }}</th>
                 <th class="text-center">{{ __('Actions') }}</th>
@@ -45,8 +46,8 @@
             <tbody>
               @forelse($product->sizes as $size)
               <tr id="size-row-{{ $size->id }}">
-                <td class="fw-semibold">{{ $size->size_label }}</td>
-                <td class="text-muted" dir="rtl">{{ $size->size_label_ur ?? '—' }}</td>
+                <td class="fw-semibold {{$size?->id}}size-label">{{ $size->size_label }}</td>
+                <td class="text-muted {{$size?->id}}size-label_ur" dir="rtl">{{ $size->size_label_ur ?? '—' }}</td>
                 <td><code>{{ $size->sku ?? '—' }}</code></td>
                 <td class="text-center">
                   <span class="badge {{ $size->isLowStock() ? 'bg-danger' : 'bg-success' }} size-stock" id="stock-{{ $size->id }}">
@@ -55,6 +56,9 @@
                   @if($size->isLowStock())
                     <i class="bi bi-exclamation-triangle text-warning ms-1" title="{{ app()->getLocale() === 'ur' ? 'Kam Stor!' : 'Low stock!' }}"></i>
                   @endif
+                </td>
+                <td class="text-end fw-semibold text-primary">
+                  PKR {{ number_format($size->currentPrice()?->purchase_price ?? 0, 2) }}
                 </td>
                 <td class="text-end fw-semibold text-primary" id="price-{{ $size->id }}">
                   PKR {{ number_format($size->currentPrice()?->new_price ?? 0, 2) }}
@@ -67,23 +71,38 @@
                   @endif
                 </td>
                 <td class="text-center">
+                  <button class="btn btn-sm btn-outline-info btn-edit-size"
+                    data-id="{{ $size->id }}" data-label="{{ $size->size_label }}"
+                    data-label_ur="{{ $size->size_label_ur }}"
+                    data-active="{{ $size->is_active }}"
+                    title="{{ app()->getLocale() === 'ur' ? 'Update Size' : 'Update Size' }}">
+                    <i class="bi bi-pencil"></i>
+                  </button>
                   <button class="btn btn-sm btn-outline-primary btn-set-price"
                     data-id="{{ $size->id }}" data-label="{{ $size->size_label }}"
                     data-current="{{ $size->currentPrice()?->new_price ?? 0 }}"
+                    data-purchase_price="{{ $size->currentPrice()?->purchase_price ?? 0 }}"
                     title="{{ app()->getLocale() === 'ur' ? 'Qeemat Badlo' : 'Update Price' }}">
                     <i class="bi bi-tag"></i>
                   </button>
                   <button class="btn btn-sm btn-outline-success btn-add-stock"
                     data-id="{{ $size->id }}" data-label="{{ $size->size_label }}"
                     data-stock="{{ $size->stock_quantity }}"
+                    data-purchase_price="{{ $size->currentPrice()?->purchase_price ?? 0 }}"
                     title="{{ app()->getLocale() === 'ur' ? 'Stor Daalo' : 'Add Stock' }}">
                     <i class="bi bi-plus-circle"></i>
                   </button>
                   <button class="btn btn-sm btn-outline-warning btn-adjust-stock"
                     data-id="{{ $size->id }}" data-label="{{ $size->size_label }}"
                     data-stock="{{ $size->stock_quantity }}"
+                    data-purchase_price="{{ $size->currentPrice()?->purchase_price ?? 0 }}"
                     title="{{ app()->getLocale() === 'ur' ? 'Stor Theek Karo' : 'Adjust Stock' }}">
                     <i class="bi bi-sliders"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger btn-delete-size"
+                    data-id="{{ $size->id }}" data-label="{{ $size->size_label }}"
+                    title="{{ app()->getLocale() === 'ur' ? 'Size Mitao' : 'Delete Size' }}">
+                    <i class="bi bi-trash"></i>
                   </button>
                 </td>
               </tr>
@@ -109,6 +128,7 @@
             <thead class="table-light">
               <tr>
                 <th>{{ __('Size') }}</th>
+                <th>{{ app()->getLocale() === 'ur' ? 'Qeemat-e-Khared' : 'Purchase Price' }}</th>
                 <th>{{ app()->getLocale() === 'ur' ? 'Purani Qeemat' : 'Old Price' }}</th>
                 <th>{{ app()->getLocale() === 'ur' ? 'Nai Qeemat' : 'New Price' }}</th>
                 <th>{{ app()->getLocale() === 'ur' ? 'Kisne Badla' : 'Changed By' }}</th>
@@ -124,6 +144,7 @@
               @forelse($history as $h)
               <tr>
                 <td>{{ $h->productSize->size_label }}</td>
+                <td class="text-muted">{{ $h->purchase_price ? 'PKR '.number_format($h->purchase_price,2) : '—' }}</td>
                 <td class="text-muted">{{ $h->old_price ? 'PKR '.number_format($h->old_price,2) : '—' }}</td>
                 <td class="fw-semibold text-success">PKR {{ number_format($h->new_price,2) }}</td>
                 <td>{{ $h->changedBy->name }}</td>
@@ -179,6 +200,32 @@
 </div>
 
 {{-- Set Price Modal --}}
+<div class="modal fade" id="editSizeModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title"><i class="bi bi-tag me-1"></i> {{ app()->getLocale() === 'ur' ? 'Qeemat Badlo' : 'Update Price' }}</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-3">{{ __('Size') }}: <strong id="priceSizeLabel"></strong></p>
+        <label class="form-label fw-semibold">{{ app()->getLocale() === 'ur' ? 'Saiz ka Naam' : 'Size Label' }}</label>
+        <input type="text" id="label" class="form-control">
+        <small class="text-muted">{{ app()->getLocale() === 'ur' ? 'سائز (اردو)' : 'Size (اردو)' }} <span id="currentPriceDisplay"></span></small>
+        <input type="text" id="label_ur" class="form-control">
+        <div class="form-check form-switch mt-2">
+			<input class="form-check-input" type="checkbox" id="isActive" value="1">
+			<label class="form-check-label" for="isActive">{{ app()->getLocale() === 'ur' ? 'Maal Chaloo Hai' : 'Product Active' }}</label>
+		</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="button" class="btn btn-sm btn-primary" id="confirmEditSize">{{ app()->getLocale() === 'ur' ? 'Qeemat Badlo' : 'Update Price' }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{-- Set Price Modal --}}
 <div class="modal fade" id="setPriceModal" tabindex="-1">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
@@ -191,6 +238,9 @@
         <label class="form-label fw-semibold">{{ app()->getLocale() === 'ur' ? 'Nai Qeemat (PKR)' : 'New Price (PKR)' }}</label>
         <input type="number" id="newPriceInput" class="form-control" step="0.01" min="0" placeholder="0.00">
         <small class="text-muted">{{ app()->getLocale() === 'ur' ? 'Mojooda:' : 'Current:' }} <span id="currentPriceDisplay"></span></small>
+        <label class="form-label fw-semibold">{{ app()->getLocale() === 'ur' ? 'Purchase Price (PKR)' : 'Purchase Price (PKR)' }}</label>
+        <input type="number" id="purchasePriceInput" class="form-control" step="0.01" min="0" placeholder="0.00">
+        <div class="form-text">{{ app()->getLocale() === 'ur' ? 'Ikhtiyari: asal kharid ki qeemat darj karein.' : 'Optional: record the purchase cost if available.' }}</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
@@ -214,6 +264,9 @@
         <input type="number" id="addStockQty" class="form-control" min="1" value="1">
         <label class="form-label fw-semibold mt-2">{{ __('Notes') }} ({{ app()->getLocale() === 'ur' ? 'Ikhtiyari' : 'optional' }})</label>
         <input type="text" id="addStockNotes" class="form-control" placeholder="{{ app()->getLocale() === 'ur' ? 'maslan: Naya maal aaya' : 'e.g. New batch received' }}">
+        <label class="form-label fw-semibold mt-3">{{ app()->getLocale() === 'ur' ? 'Purchase Price (PKR)' : 'Purchase Price (PKR)' }}</label>
+        <input type="number" id="addStockPurchasePrice" class="form-control" step="0.01" min="0" placeholder="0.00">
+        <div class="form-text">{{ app()->getLocale() === 'ur' ? 'Ikhtiyari: agar stock kharida gaya hai to qeemat darj karein.' : 'Optional: enter purchase cost if this stock is from a purchase.' }}</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
@@ -238,6 +291,9 @@
         <input type="number" id="adjustStockQty" class="form-control" min="0">
         <label class="form-label fw-semibold mt-2">{{ app()->getLocale() === 'ur' ? 'Waja' : 'Reason' }}</label>
         <input type="text" id="adjustStockNotes" class="form-control" placeholder="{{ app()->getLocale() === 'ur' ? 'maslan: Ginti ki waja se' : 'e.g. Physical count correction' }}">
+        <label class="form-label fw-semibold mt-3">{{ app()->getLocale() === 'ur' ? 'Purchase Price (PKR)' : 'Purchase Price (PKR)' }}</label>
+        <input type="number" id="adjustPurchasePrice" class="form-control" step="0.01" min="0" placeholder="0.00">
+        <div class="form-text">{{ app()->getLocale() === 'ur' ? 'Ikhtiyari: agar adjustment kisi kharid ki wajah se hai to qeemat darj karein.' : 'Optional: record purchase cost if this adjustment is from a purchase.' }}</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
@@ -281,6 +337,10 @@
             <label class="form-label fw-semibold">{{ __('Price (PKR)') }} <span class="text-danger">*</span></label>
             <input type="number" id="newSizePrice" class="form-control" placeholder="0.00" step="0.01" min="0">
           </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">{{ app()->getLocale() === 'ur' ? 'Purchase Price (PKR)' : 'Purchase Price (PKR)' }}</label>
+            <input type="number" id="newSizePurchasePrice" class="form-control" placeholder="0.00" min="0">
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -297,11 +357,41 @@
 $(function () {
   var activeSizeId = null;
 
+  $(document).on('click', '.btn-edit-size', function () {
+    activeSizeId = $(this).data('id');
+    $('#priceSizeLabel').text($(this).data('label'));
+	$('#label').val($(this).data('label'))
+	$('#label_ur').val($(this).data('label_ur')),
+	$('#isActive').attr('checked', $(this).data('active'))
+    $('#editSizeModal').modal('show');
+  });
+
+  $('#confirmEditSize').on('click', function () {
+    var label = $('#label').val()?.trim();
+    if (!label || label == '') { alert('{{ app()->getLocale() === 'ur' ? 'Sahi label likhein.' : 'Enter a valid label.' }}'); return; }
+
+    $.post('/sizes/' + activeSizeId , {
+	  _method: 'PATCH',
+	  _token: $('meta[name="csrf-token"]').attr('content'),
+      size_label: $('#label').val(),
+      size_label_ur: $('#label_ur').val(),
+      is_active: $('#isActive').prop('checked') == true ? 1 : 0
+    })
+      .done(function () {
+        $(`#${activeSizeId}size-label`).text(label);
+        $(`#${activeSizeId}size-label_ur`).text(label_ur);
+        $('#editSizeModal').modal('hide');
+        showToast('{{ app()->getLocale() === 'ur' ? 'Qeemat update ho gayi!' : 'Price updated successfully!' }}', 'success');
+      })
+      .fail(function () { alert('{{ app()->getLocale() === 'ur' ? 'label update nahi ho saki.' : 'Failed to update label.' }}'); });
+  });
+
   $(document).on('click', '.btn-set-price', function () {
     activeSizeId = $(this).data('id');
     $('#priceSizeLabel').text($(this).data('label'));
     $('#currentPriceDisplay').text('PKR ' + parseFloat($(this).data('current')).toFixed(2));
     $('#newPriceInput').val('').focus();
+    $('#purchasePriceInput').val(parseFloat($(this).data('purchase_price')).toFixed(2) ?? 0);
     $('#setPriceModal').modal('show');
   });
 
@@ -309,7 +399,10 @@ $(function () {
     var price = $('#newPriceInput').val();
     if (!price || price <= 0) { alert('{{ app()->getLocale() === 'ur' ? 'Sahi qeemat likhein.' : 'Enter a valid price.' }}'); return; }
 
-    $.post('/sizes/' + activeSizeId + '/set-price', { price: price })
+    $.post('/sizes/' + activeSizeId + '/set-price', {
+      price: price,
+      purchase_price: $('#purchasePriceInput').val() || null
+    })
       .done(function () {
         $('#price-' + activeSizeId).text('PKR ' + parseFloat(price).toFixed(2));
         $('#setPriceModal').modal('hide');
@@ -323,6 +416,7 @@ $(function () {
     $('#addStockLabel').text($(this).data('label'));
     $('#addStockQty').val(1);
     $('#addStockNotes').val('');
+    $('#addStockPurchasePrice').val(parseFloat($(this).data('purchase_price')).toFixed(2) ?? 0);
     $('#addStockModal').modal('show');
   });
 
@@ -332,7 +426,8 @@ $(function () {
 
     $.post('/sizes/' + activeSizeId + '/add-stock', {
       quantity: qty,
-      notes: $('#addStockNotes').val()
+      notes: $('#addStockNotes').val(),
+      purchase_price: $('#addStockPurchasePrice').val() || null
     }).done(function (res) {
       var badge = $('#stock-' + activeSizeId);
       badge.text(res.new_stock);
@@ -349,6 +444,7 @@ $(function () {
     $('#adjustCurrentStock').text($(this).data('stock'));
     $('#adjustStockQty').val($(this).data('stock'));
     $('#adjustStockNotes').val('');
+    $('#adjustPurchasePrice').val(parseFloat($(this).data('purchase_price')).toFixed(2) ?? 0);
     $('#adjustStockModal').modal('show');
   });
 
@@ -358,7 +454,8 @@ $(function () {
 
     $.post('/sizes/' + activeSizeId + '/adjust-stock', {
       quantity: qty,
-      notes: $('#adjustStockNotes').val()
+      notes: $('#adjustStockNotes').val(),
+      purchase_price: $('#adjustPurchasePrice').val() || null
     }).done(function (res) {
       var badge = $('#stock-' + activeSizeId);
       badge.text(res.new_stock);
@@ -370,6 +467,53 @@ $(function () {
     }).fail(function () { alert('{{ app()->getLocale() === 'ur' ? 'Stor theek nahi ho saka.' : 'Failed to adjust stock.' }}'); });
   });
 
+  $(document).on('click', '.btn-delete-size', function () {
+    activeSizeId = $(this).data('id');
+    let decision = window.confirm(`Are you sure you want to delete` );
+    if (decision) {
+      $.ajax({
+        url : `/sizes/${activeSizeId}`,
+        method: 'DELETE',
+        success : (res)=> {
+          console.log(res);
+          if (res?.success) {
+            showToast('{{ app()->getLocale() === 'ur' ? 'Size mit gya!' : 'Size Deleted!' }}', 'success');
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+            return
+          } else
+          alert(res?.message);
+        },
+        error : (err) => {
+          console.log(err);
+          alert('Operation Failed');
+        },
+
+      })
+    }
+  });
+
+  // $('#confirmDeleteSize').on('click', function () {
+  //   var qty = parseInt($('#adjustStockQty').val());
+  //   if (isNaN(qty) || qty < 0) { alert('{{ app()->getLocale() === 'ur' ? 'Sahi tadadd likhein.' : 'Enter a valid quantity.' }}'); return; }
+
+  //   $.post('/sizes/' + activeSizeId, {
+  //   // $.post('/sizes/' + activeSizeId + '/adjust-stock', {
+  //     quantity: qty,
+  //     notes: $('#adjustStockNotes').val(),
+  //     purchase_price: $('#adjustPurchasePrice').val() || null
+  //   }).done(function (res) {
+  //     var badge = $('#stock-' + activeSizeId);
+  //     badge.text(res.new_stock);
+  //     badge.removeClass('bg-danger bg-success')
+  //          .addClass(res.is_low ? 'bg-danger' : 'bg-success');
+  //     $('#adjustCurrentStock').text(res.new_stock);
+  //     $('#adjustStockModal').modal('hide');
+  //     showToast('{{ app()->getLocale() === 'ur' ? 'Stor theek ho gaya!' : 'Stock adjusted!' }}', 'success');
+  //   }).fail(function () { alert('{{ app()->getLocale() === 'ur' ? 'Stor theek nahi ho saka.' : 'Failed to adjust stock.' }}'); });
+  // });
+
   $('#confirmAddSize').on('click', function () {
     var data = {
       size_label:          $.trim($('#newSizeLabel').val()),
@@ -377,7 +521,8 @@ $(function () {
       sku:                 $.trim($('#newSizeSku').val()),
       stock_quantity:      $('#newSizeStock').val(),
       low_stock_threshold: $('#newSizeThreshold').val(),
-      initial_price:       $('#newSizePrice').val()
+      initial_price:       $('#newSizePrice').val(),
+      purchase_price:      $('#newSizePurchasePrice').val() || null
     };
     if (!data.size_label || !data.initial_price) {
       alert('{{ app()->getLocale() === 'ur' ? 'Size ka naam aur qeemat zaroori hain.' : 'Size label and price are required.' }}');

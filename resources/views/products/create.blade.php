@@ -54,6 +54,14 @@
                 </a>
               </div>
             </div>
+            <div class="col-md-12">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="1" id="is_weighted" name="is_weighted">
+                <label class="form-check-label small" for="is_weighted">
+                  {{ app()->getLocale() === 'ur' ? 'Kya ye Wazan wali product he?' : 'Is Weighted Product?' }}
+                </label>
+              </div>
+            </div>
 
             <div class="col-12">
               <label class="form-label fw-semibold">{{ __('Description') }}</label>
@@ -82,6 +90,7 @@
                   <th>{{ __('SKU') }}</th>
                   <th>{{ __('Opening Stock') }}</th>
                   <th>{{ __('Low Stock Alert') }}</th>
+                  <th>{{ __('Purchase Price (PKR)') }} </th>
                   <th>{{ __('Price (PKR)') }} <span class="text-danger">*</span></th>
                   <th width="50"></th>
                 </tr>
@@ -93,7 +102,8 @@
                   <td><input type="text" name="sizes[0][sku]" class="form-control form-control-sm" placeholder="{{ app()->getLocale() === 'ur' ? 'Ikhtiyari' : 'Optional' }}"></td>
                   <td><input type="number" name="sizes[0][stock_quantity]" class="form-control form-control-sm" value="0" min="0"></td>
                   <td><input type="number" name="sizes[0][low_stock_threshold]" class="form-control form-control-sm" value="5" min="0"></td>
-                  <td><input type="number" name="sizes[0][initial_price]" class="form-control form-control-sm" placeholder="0.00" step="0.01" min="0" required></td>
+                  <td><input type="number" name="sizes[0][purchase_price]" class="form-control form-control-sm" placeholder="0" min="0"></td>
+                  <td><input type="number" name="sizes[0][initial_price]" class="form-control form-control-sm" placeholder="0" min="0" required></td>
                   <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-size"><i class="bi bi-trash"></i></button></td>
                 </tr>
               </tbody>
@@ -180,7 +190,8 @@ $(function () {
         <td><input type="text" name="sizes[${sizeIndex}][sku]" class="form-control form-control-sm" placeholder="{{ app()->getLocale() === 'ur' ? 'Ikhtiyari' : 'Optional' }}"></td>
         <td><input type="number" name="sizes[${sizeIndex}][stock_quantity]" class="form-control form-control-sm" value="0" min="0"></td>
         <td><input type="number" name="sizes[${sizeIndex}][low_stock_threshold]" class="form-control form-control-sm" value="5" min="0"></td>
-        <td><input type="number" name="sizes[${sizeIndex}][initial_price]" class="form-control form-control-sm" placeholder="0.00" step="0.01" min="0" required></td>
+        <td><input type="number" name="sizes[${sizeIndex}][purchase_price]" class="form-control form-control-sm" placeholder="0" min="0"></td>
+        <td><input type="number" name="sizes[${sizeIndex}][initial_price]" class="form-control form-control-sm" placeholder="0" min="0" required></td>
         <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-size"><i class="bi bi-trash"></i></button></td>
       </tr>`;
     $('#sizeRows').append(row);

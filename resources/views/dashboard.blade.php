@@ -17,11 +17,15 @@
       <a href="{{ route('invoices.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i> {{ __('New Invoice') }}
       </a>
+      <a href="{{ route('purchase_invoices.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> {{ __('New Purchase Invoice') }}
+      </a>
     </div>
   </section>
 
   {{-- KPI Cards --}}
   <section class="row g-3 mb-4">
+    <h6>Sell Metrics</h6>
     <div class="col-xxl-3 col-md-6">
       <article class="nd-kpi-card nd-kpi-revenue">
         <span class="nd-kpi-icon"><i class="bi bi-cash-stack"></i></span>
@@ -66,11 +70,52 @@
         </a>
       </article>
     </div>
+    <h6>Purchase Metrics</h6>
+    <div class="col-xxl-3 col-md-6">
+      <article class="nd-kpi-card nd-kpi-revenue">
+        <span class="nd-kpi-icon"><i class="bi bi-cash-stack"></i></span>
+        <span class="nd-kpi-label">{{ __("Today's Purchases") }}</span>
+        <strong class="nd-kpi-value">PKR {{ number_format($todayPurchases, 0) }}</strong>
+        <span class="nd-kpi-trend up">
+          <i class="bi bi-receipt"></i> {{ $todayPurchaseInvoices }} {{ app()->getLocale() === 'ur' ? 'Raseed' : 'invoice' . ($todayPurchaseInvoices != 1 ? 's' : '') }}
+        </span>
+      </article>
+    </div>
+    <div class="col-xxl-3 col-md-6">
+      <article class="nd-kpi-card nd-kpi-leads">
+        <span class="nd-kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+        <span class="nd-kpi-label">{{ __('Pending / Udhar') }}</span>
+        <strong class="nd-kpi-value">PKR {{ number_format($totalPurchasePending, 0) }}</strong>
+        <a href="{{ route('purchase_invoices.index', ['status' => 'pending']) }}" class="nd-kpi-trend">
+          {{ app()->getLocale() === 'ur' ? 'Sab Dekho' : 'View all' }} <i class="bi bi-arrow-right"></i>
+        </a>
+      </article>
+    </div>
+    <div class="col-xxl-3 col-md-6">
+      <article class="nd-kpi-card nd-kpi-cycle">
+        <span class="nd-kpi-icon"><i class="bi bi-cash-stack"></i></span>
+        <span class="nd-kpi-label">{{ __('Total Purchase Payments') }}</span>
+        <strong class="nd-kpi-value">PKR {{ number_format($totalPurchasePayments, 0) }}</strong>
+        <a href="{{ route('reports.purchase_payments', ['status' => 'pending']) }}" class="nd-kpi-trend">
+          {{ app()->getLocale() === 'ur' ? 'Sab Dekho' : 'View all' }} <i class="bi bi-arrow-right"></i>
+        </a>
+      </article>
+    </div>
+    <div class="col-xxl-3 col-md-6">
+      <article class="nd-kpi-card nd-kpi-retention">
+        <span class="nd-kpi-icon"><i class="bi bi-people"></i></span>
+        <span class="nd-kpi-label">{{ __("Today's Purchase Invoices") }}</span>
+        <strong class="nd-kpi-value">{{ $todayPurchaseInvoices }}</strong>
+        <a href="{{ route('purchase_invoices.index') }}" class="nd-kpi-trend up">
+          {{ app()->getLocale() === 'ur' ? 'Tamam Raseeden' : 'All Purchase invoices' }} <i class="bi bi-arrow-right"></i>
+        </a>
+      </article>
+    </div>
   </section>
 
   <div class="row g-3">
     {{-- Recent Invoices --}}
-    <div class="col-xl-8">
+    <div class="col-xl-6">
       <div class="card h-100">
         <div class="card-header d-flex align-items-center justify-content-between">
           <h5 class="card-title mb-0">{{ __('Recent Invoices') }}</h5>
@@ -78,7 +123,7 @@
             {{ app()->getLocale() === 'ur' ? 'Sab Dekho' : 'View All' }}
           </a>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-2">
           <div class="table-responsive">
             <table class="table table-hover mb-0">
               <thead class="table-light">
@@ -127,6 +172,63 @@
         </div>
       </div>
     </div>
+    <div class="col-xl-6">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="card-title mb-0">{{ __('Recent Purchase Invoices') }}</h5>
+          <a href="{{ route('purchase_invoices.index') }}" class="btn btn-sm btn-outline-primary">
+            {{ app()->getLocale() === 'ur' ? 'Sab Dekho' : 'View All' }}
+          </a>
+        </div>
+        <div class="card-body p-2">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ __('Invoice #') }}</th>
+                  <th>{{ __('Vendors') }}</th>
+                  <th>{{ __('Total Amount') }}</th>
+                  <th>{{ __('Status') }}</th>
+                  <th>{{ __('Date') }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse($recentPurchaseInvoices as $invoice)
+                <tr>
+                  <td>
+                    <a href="{{ route('invoices.show', $invoice) }}" class="fw-semibold text-primary">
+                      {{ $invoice->invoice_number }}
+                    </a>
+                  </td>
+                  <td>{{ $invoice->vendor_name }}</td>
+                  <td>PKR {{ number_format($invoice->total_amount, 0) }}</td>
+                  <td>
+                    @php $badge = match($invoice->status) { 'paid' => 'success', 'partial' => 'warning', 'pending' => 'danger', default => 'secondary' }; @endphp
+                    <span class="badge bg-{{ $badge }}">{{ __(ucfirst($invoice->status)) }}</span>
+                  </td>
+                  <td>{{ $invoice->invoice_date->format('d M Y') }}</td>
+                  <td>
+                    <a href="{{ route('invoices.show', $invoice) }}" class="btn btn-sm btn-light">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+                @empty
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    <i class="bi bi-receipt fs-3 d-block mb-2"></i>
+                    {{ __('No invoices yet.') }}
+                    <a href="{{ route('purchase_invoices.create') }}">{{ app()->getLocale() === 'ur' ? 'Banao' : 'Create one' }}</a>
+                  </td>
+                </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
 
     {{-- Low Stock --}}
     <div class="col-xl-4">
@@ -140,7 +242,7 @@
           </a>
         </div>
         <div class="card-body p-0">
-          @forelse($lowStockItems as $item)
+          @forelse($lowStockItems->take(10) as $item)
           <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
             <div>
               <div class="fw-semibold small">{{ $item->product->name }}</div>

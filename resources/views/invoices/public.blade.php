@@ -117,7 +117,7 @@
         <p class="section-title">{{ app()->getLocale() === 'ur' ? 'Adaigian' : 'Payments Received' }}</p>
         @forelse($invoice->payments as $payment)
         <div class="d-flex justify-content-between small mb-1">
-          <span class="text-muted">{{ $payment->payment_date->format('d M Y') }} ({{ ucfirst($payment->payment_method) }})</span>
+          <span class="text-muted">{{ $payment->payment_date->format('d M Y') }} ({{ $payment->payment_method_label }})</span>
           <span class="text-success fw-semibold">PKR {{ number_format($payment->amount, 0) }}</span>
         </div>
         @empty

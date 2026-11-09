@@ -45,6 +45,14 @@
               </select>
               @error('category_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
+            <div class="col-md-12">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="1" id="is_weighted" name="is_weighted" @checked($product?->is_weighted)>
+                <label class="form-check-label small" for="is_weighted">
+                  {{ app()->getLocale() === 'ur' ? 'Kya ye Wazan wali product he?' : 'Is Weighted Product?' }}
+                </label>
+              </div>
+            </div>
             <div class="col-12">
               <label class="form-label fw-semibold">{{ __('Description') }}</label>
               <textarea name="description" class="form-control" rows="3">{{ old('description', $product->description) }}</textarea>

@@ -36,20 +36,24 @@ class SettingsController extends Controller
 
     public function update(Request $request)
     {
-        $validated = $request->validate([
-            'shop_name'         => ['required', 'string', 'max:150'],
-            'shop_tagline'      => ['nullable', 'string', 'max:200'],
-            'shop_address'      => ['nullable', 'string', 'max:300'],
-            'shop_city'         => ['nullable', 'string', 'max:100'],
-            'shop_phone'        => ['nullable', 'string', 'max:50'],
-            'shop_phone2'       => ['nullable', 'string', 'max:50'],
-            'shop_email'        => ['nullable', 'email', 'max:150'],
-            'bill_footer_note'  => ['nullable', 'string', 'max:500'],
-            'low_stock_default' => ['nullable', 'integer', 'min:0', 'max:9999'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'shop_name'         => ['required', 'string', 'max:150'],
+                'shop_tagline'      => ['nullable', 'string', 'max:200'],
+                'shop_address'      => ['nullable', 'string', 'max:300'],
+                'shop_city'         => ['nullable', 'string', 'max:100'],
+                'shop_phone'        => ['nullable', 'string', 'max:50'],
+                'shop_phone2'       => ['nullable', 'string', 'max:50'],
+                'shop_email'        => ['nullable', 'email', 'max:150'],
+                'bill_footer_note'  => ['nullable', 'string', 'max:500'],
+                'low_stock_default' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            ]);
 
-        Setting::setMany($validated);
+            Setting::setMany($validated);
 
-        return back()->with('success', __('Settings saved successfully.'));
+            return back()->with('success', __('Settings saved successfully.'));
+        } catch (\Throwable $e) {
+            return $this->handleException($request, $e, 'Unable to save settings. Please try again.');
+        }
     }
 }

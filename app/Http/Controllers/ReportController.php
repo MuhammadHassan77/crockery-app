@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\ProductSize;
+use App\Models\PurchaseInvoice;
+use App\Models\PurchasePayment;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
@@ -14,7 +16,7 @@ class ReportController extends Controller
         $from = $request->from ?? now()->startOfMonth()->toDateString();
         $to   = $request->to   ?? now()->toDateString();
 
-        $invoices = Invoice::with('customer')
+        $invoices = Invoice::with('customer', 'createdBy')
             ->whereBetween('invoice_date', [$from, $to])
             ->when($request->status, fn($q, $v) => $q->where('status', $v))
             ->latest('invoice_date')
@@ -30,17 +32,51 @@ class ReportController extends Controller
         return view('reports.sales', compact('invoices', 'summary', 'from', 'to'));
     }
 
+    public function purchases(Request $request)
+    {
+        $from = $request->from ?? now()->startOfMonth()->toDateString();
+        $to   = $request->to   ?? now()->toDateString();
+
+        $invoices = PurchaseInvoice::with('vendor', 'createdBy')
+            ->whereBetween('invoice_date', [$from, $to])
+            ->when($request->status, fn($q, $v) => $q->where('status', $v))
+            ->latest('invoice_date')
+            ->get();
+
+        $summary = [
+            'total_sales'   => $invoices->sum('total_amount'),
+            'total_paid'    => $invoices->sum('paid_amount'),
+            'total_pending' => $invoices->sum(fn($i) => $i->total_amount - $i->paid_amount),
+            'count'         => $invoices->count(),
+        ];
+
+        return view('reports.purchases', compact('invoices', 'summary', 'from', 'to'));
+    }
+
     public function payments(Request $request)
     {
         $from = $request->from ?? now()->startOfMonth()->toDateString();
         $to   = $request->to   ?? now()->toDateString();
 
-        $payments = Payment::with('invoice.customer')
+        $payments = Payment::with('invoice.customer', 'receivedBy')
             ->whereBetween('paid_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
             ->latest('paid_at')
             ->get();
 
         return view('reports.payments', compact('payments', 'from', 'to'));
+    }
+
+    public function purchasePayments(Request $request)
+    {
+        $from = $request->from ?? now()->startOfMonth()->toDateString();
+        $to   = $request->to   ?? now()->toDateString();
+
+        $payments = PurchasePayment::with('invoice.vendor', 'receivedBy')
+            ->whereBetween('paid_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+            ->latest('paid_at')
+            ->get();
+
+        return view('reports.purchase_payments', compact('payments', 'from', 'to'));
     }
 
     public function stock()

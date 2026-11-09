@@ -69,7 +69,7 @@
 
 <div class="card">
   <div class="card-header"><h6 class="mb-0">{{ __('Invoice Details') }}</h6></div>
-  <div class="card-body p-0">
+  <div class="card-body p-2">
     <div class="table-responsive">
       <table class="table table-hover mb-0" id="salesTable">
         <thead class="table-light">
@@ -81,6 +81,7 @@
             <th class="text-end">{{ __('Total') }}</th>
             <th class="text-end">{{ __('Paid') }}</th>
             <th class="text-end">{{ __('Due') }}</th>
+            <th>{{ __('Created By') }}</th>
             <th>{{ __('Status') }}</th>
           </tr>
         </thead>
@@ -94,6 +95,7 @@
             <td class="text-end">PKR {{ number_format($inv->total_amount, 0) }}</td>
             <td class="text-end text-success">PKR {{ number_format($inv->paid_amount, 0) }}</td>
             <td class="text-end {{ $inv->remaining_amount > 0 ? 'text-danger fw-semibold' : 'text-muted' }}">PKR {{ number_format($inv->remaining_amount, 0) }}</td>
+            <td>{{ $inv->createdBy?->name ?? '' }}</td>
             <td>
               @php $badge = match($inv->status) { 'paid' => 'success', 'partial' => 'warning text-dark', 'pending' => 'danger', default => 'secondary' }; @endphp
               <span class="badge bg-{{ $badge }}">{{ __(ucfirst($inv->status)) }}</span>

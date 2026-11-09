@@ -27,6 +27,10 @@
   <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
   <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
 
+  <!-- Select2 CSS for searchable selects -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+
   <!-- Template Main CSS -->
   <link href="{{ asset('assets/niceadmin/css/main.css') }}" rel="stylesheet">
 
@@ -95,6 +99,7 @@
       @yield('content')
 
     </div>
+    @include('_partials.footer')
   </main>
 
   <!-- Core JS -->
@@ -110,12 +115,15 @@
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
+  <!-- Select2 JS for searchable selects -->
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
   <script src="{{ asset('assets/niceadmin/js/choices.min.js') }}"></script>
   <script src="{{ asset('assets/niceadmin/js/flatpickr.min.js') }}"></script>
   <script src="{{ asset('assets/niceadmin/js/theme.js') }}"></script>
   <script src="{{ asset('assets/niceadmin/js/main.js') }}"></script>
-  <script src="{{ asset('assets/niceadmin/js/apps-sidebar-toggle.js') }}"></script>
-
+  <script src="{{ asset('assets/niceadmin/js/apps-sidebar-toggle.js') }}"></script> 
+   <script src="{{ asset('js/select2-helpers.js') }}"></script>
   <script>
     // Global AJAX CSRF setup
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });

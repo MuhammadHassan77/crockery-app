@@ -54,7 +54,7 @@
 
 <div class="card">
   <div class="card-header"><h6 class="mb-0">{{ __('Payment Records') }}</h6></div>
-  <div class="card-body p-0">
+  <div class="card-body p-2">
     <div class="table-responsive">
       <table class="table table-hover mb-0" id="paymentsTable">
         <thead class="table-light">
@@ -64,6 +64,7 @@
             <th>{{ __('Invoice #') }}</th>
             <th>{{ __('Customers') }}</th>
             <th>{{ __('Payment Method') }}</th>
+            <th>{{ __('Received By') }}</th>
             <th class="text-end">{{ __('Total Amount') }}</th>
             <th>{{ __('Notes') }}</th>
           </tr>
@@ -75,7 +76,8 @@
             <td>{{ $payment->paid_at->format('d M Y') }}</td>
             <td><a href="{{ route('invoices.show', $payment->invoice) }}" class="fw-semibold">{{ $payment->invoice->invoice_number }}</a></td>
             <td>{{ $payment->invoice->customer?->name ?? ($payment->invoice->customer_name ?: (app()->getLocale() === 'ur' ? 'Seedha Aaya' : 'Walk-in')) }}</td>
-            <td><span class="badge bg-light text-dark border">{{ __(ucfirst(str_replace('_', ' ', $payment->payment_method))) }}</span></td>
+            <td><span class="badge bg-light text-dark border">{{ __($payment->payment_method_label) }}</span></td>
+            <td>{{ $payment->receivedBy?->name ?? '' }}</td>
             <td class="text-end fw-semibold text-success">PKR {{ number_format($payment->amount, 0) }}</td>
             <td class="small text-muted">{{ $payment->notes ?: '—' }}</td>
           </tr>
